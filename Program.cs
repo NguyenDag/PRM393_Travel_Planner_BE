@@ -127,6 +127,8 @@ namespace PRM393_Travel_Planner_BE
 
             app.MapControllers();
 
+            app.MapGet("/", () => Results.Redirect("/swagger"));
+
             app.Run();
         }
     }
