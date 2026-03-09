@@ -1,0 +1,6 @@
+@PRM393_Travel_Planner_BE_HostAddress = http://localhost:5260
+
+GET {{PRM393_Travel_Planner_BE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
