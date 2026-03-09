@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PRM393_Travel_Planner_BE.Models;
+using PRM393_Travel_Planner_BE.Repositories.Implementations;
+using PRM393_Travel_Planner_BE.Repositories.Interfaces;
+using PRM393_Travel_Planner_BE.Services.Implementations;
+using PRM393_Travel_Planner_BE.Services.Interfaces;
 using TravelApp.API.API.Middleware;
 using TravelApp.API.Application.Interfaces;
 using TravelApp.API.Application.Services;
@@ -49,6 +53,17 @@ namespace PRM393_Travel_Planner_BE
             // ── Dependency Injection ──────────────────────────────────────────────────────
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            builder.Services.AddScoped<ITripRepository, TripRepository>();
+            builder.Services.AddScoped<ITripDayRepository, TripDayRepository>();
+            builder.Services.AddScoped<ITripActivityRepository, TripActivityRepository>();
+            builder.Services.AddScoped<IChecklistRepository, ChecklistRepository>();
+            builder.Services.AddScoped<IChecklistItemRepository, ChecklistItemRepository>();
+
+            // ── Services ──────────────────────────────────────────────────────────────────
+            builder.Services.AddScoped<ITripService, TripService>();
+            builder.Services.AddScoped<ITripDayService, TripDayService>();
+            builder.Services.AddScoped<ITripActivityService, TripActivityService>();
+            builder.Services.AddScoped<IChecklistService, ChecklistService>();
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
 
