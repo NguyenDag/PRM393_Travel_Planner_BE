@@ -1,26 +1,22 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Options;
 using MimeKit;
+using PRM393_Travel_Planner_BE.Models;
 using TravelApp.API.Application.Interfaces;
 
 namespace TravelApp.API.Application.Services;
 
-public class EmailService(IConfiguration config) : IEmailService
+public class EmailService(IOptions<EmailSettings> emailOptions) : IEmailService
 {
+    private readonly EmailSettings _email = emailOptions.Value;
+
     public async Task SendOtpAsync(string toEmail, string otp)
     {
-        var smtpHost     = config["Email:SmtpHost"]!;
-        var smtpPort     = int.Parse(config["Email:SmtpPort"] ?? "587");
-        var smtpUser     = config["Email:SmtpUser"]!;
-        var smtpPass     = config["Email:SmtpPass"]!;
-        var fromName     = config["Email:FromName"] ?? "Travel Planner";
-        var fromAddress  = config["Email:FromAddress"] ?? smtpUser;
-
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(fromName, fromAddress));
+        message.From.Add(new MailboxAddress(_email.FromName, _email.FromAddress));
         message.To.Add(MailboxAddress.Parse(toEmail));
         message.Subject = "Mã xác thực OTP của bạn";
-
         message.Body = new TextPart("html")
         {
             Text = $"""
@@ -45,8 +41,8 @@ public class EmailService(IConfiguration config) : IEmailService
         };
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(smtpUser, smtpPass);
+        await client.ConnectAsync(_email.SmtpHost, _email.SmtpPort, SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(_email.SmtpUser, _email.SmtpPass);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }

@@ -37,7 +37,10 @@ namespace PRM393_Travel_Planner_BE
             else
             {
                 // Logic cho môi trường Local
-                connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+                connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException(
+                        "Không tìm thấy connection string. " +
+                        "Set biến môi trường DATABASE_URL hoặc ConnectionStrings__DefaultConnection.");
             }
 
             // 2. Use PostgreSQL
@@ -45,7 +48,9 @@ namespace PRM393_Travel_Planner_BE
                 options.UseNpgsql(connectionString));
 
             // ── JWT Authentication ────────────────────────────────────────────────────────
-            var jwtSecret = builder.Configuration["Jwt:Secret"]!;
+            var jwtSecret = builder.Configuration["Jwt:Secret"]
+                ?? throw new InvalidOperationException(
+                    "Thiếu cấu hình Jwt:Secret. Set biến môi trường Jwt__Secret.");
 
             builder.Services.AddAuthentication(opt =>
             {
@@ -68,6 +73,24 @@ namespace PRM393_Travel_Planner_BE
             });
 
             builder.Services.AddAuthorization();
+
+            // ── 4. Email Config ───────────────────────────────────────────────────────────
+            // Đọc từ appsettings.json (local) hoặc biến môi trường (server):
+            //   Email__SmtpHost, Email__SmtpPort, Email__SmtpUser,
+            //   Email__SmtpPass, Email__FromName, Email__FromAddress
+            var emailSection = builder.Configuration.GetSection("Email");
+
+            // Validate các trường bắt buộc khi khởi động để phát hiện lỗi sớm
+            var requiredEmailKeys = new[] { "SmtpHost", "SmtpPort", "SmtpUser", "SmtpPass", "FromAddress" };
+            foreach (var key in requiredEmailKeys)
+            {
+                if (string.IsNullOrWhiteSpace(emailSection[key]))
+                    throw new InvalidOperationException(
+                        $"Thiếu cấu hình Email:{key}. Set biến môi trường Email__{key}.");
+            }
+
+            // Bind toàn bộ section vào EmailSettings để inject vào EmailService
+            builder.Services.Configure<EmailSettings>(emailSection);
 
             // ── Dependency Injection ──────────────────────────────────────────────────────
             builder.Services.AddScoped<IUserRepository, UserRepository>();
