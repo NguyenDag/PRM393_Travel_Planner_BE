@@ -24,6 +24,20 @@ public record ChangePasswordRequest(
     [Required, MinLength(6)] string NewPassword
 );
 
+public record SendOtpRequest(
+    [Required, EmailAddress] string Email
+);
+
+public record VerifyOtpRequest(
+    [Required, EmailAddress] string Email,
+    [Required, StringLength(6, MinimumLength = 6)] string Otp
+);
+
+public record ResetPasswordRequest(
+    [Required] string ResetToken,
+    [Required, MinLength(6)] string NewPassword
+);
+
 // ── Response DTOs ─────────────────────────────────────────────────────────────
 
 public record AuthResponse(
@@ -40,3 +54,5 @@ public record UserDto(
     string? AvatarUrl,
     DateTime CreatedAt
 );
+
+public record OtpResponse(string Message);

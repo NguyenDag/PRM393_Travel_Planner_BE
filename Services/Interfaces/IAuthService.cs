@@ -11,4 +11,14 @@ public interface IAuthService
     Task RevokeAllTokensAsync(Guid userId);
     Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
     Task<UserDto> GetProfileAsync(Guid userId);
+
+    // ── OTP / Forgot Password ─────────────────────────────────────
+    /// <summary>Tạo OTP, lưu cache, gửi email.</summary>
+    Task SendOtpAsync(SendOtpRequest request);
+
+    /// <summary>Xác minh OTP → trả về reset token.</summary>
+    Task<string> VerifyOtpAsync(VerifyOtpRequest request);
+
+    /// <summary>Đặt lại mật khẩu bằng reset token.</summary>
+    Task ResetPasswordAsync(ResetPasswordRequest request);
 }

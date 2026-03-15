@@ -85,6 +85,10 @@ namespace PRM393_Travel_Planner_BE
             builder.Services.AddScoped<IChecklistService, ChecklistService>();
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+            // IMemoryCache — dùng để lưu OTP tạm thời
+            builder.Services.AddMemoryCache();
 
             // ── CORS ──────────────────────────────────────────────────────────────────────
             builder.Services.AddCors(opt =>

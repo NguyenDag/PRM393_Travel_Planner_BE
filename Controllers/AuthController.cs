@@ -83,6 +83,36 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(result);
     }
 
+    // POST /api/auth/send-otp
+    [HttpPost("send-otp")]
+    [ProducesResponseType(typeof(OtpResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
+    {
+        await authService.SendOtpAsync(request);
+        return Ok(new OtpResponse("Mã OTP đã được gửi đến email của bạn."));
+    }
+
+    // POST /api/auth/verify-otp
+    [HttpPost("verify-otp")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+    {
+        var resetToken = await authService.VerifyOtpAsync(request);
+        return Ok(new { reset_token = resetToken });
+    }
+
+    // POST /api/auth/reset-password
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        await authService.ResetPasswordAsync(request);
+        return NoContent();
+    }
+
     // ── Helper ─────────────────────────────────────────────────────────────
     private Guid GetCurrentUserId()
     {
