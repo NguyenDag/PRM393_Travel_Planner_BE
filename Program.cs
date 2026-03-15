@@ -25,7 +25,8 @@ namespace PRM393_Travel_Planner_BE
             var builder = WebApplication.CreateBuilder(args);
 
             // 1. Cấu hình Database (Hỗ trợ cả Railway URL và Local Connection String)
-            var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+            var databaseUrl = Environment.GetEnvironmentVariable("MY_CUSTOM_DB_URL")
+               ?? Environment.GetEnvironmentVariable("DATABASE_URL");
             string connectionString;
 
             if (!string.IsNullOrEmpty(databaseUrl))
@@ -152,6 +153,10 @@ namespace PRM393_Travel_Planner_BE
             app.MapControllers();
 
             app.MapGet("/", () => Results.Redirect("/swagger"));
+
+            var connectionString1 = builder.Services.BuildServiceProvider().GetRequiredService<Prm393TravelPlannerContext>()
+                       .Database.GetConnectionString();
+            Console.WriteLine($"--- ĐANG KẾT NỐI TỚI: {connectionString1} ---");
 
             app.Run();
         }
