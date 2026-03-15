@@ -1,4 +1,4 @@
-﻿
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +19,9 @@ namespace PRM393_Travel_Planner_BE
     {
         public static void Main(string[] args)
         {
+            // Bật legacy timestamp behavior cho Npgsql để fix lỗi xung đột DateTime khi từ SQL Server sang PostgreSQL
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
             var builder = WebApplication.CreateBuilder(args);
 
             // 1. Cấu hình Database (Hỗ trợ cả Railway URL và Local Connection String)
