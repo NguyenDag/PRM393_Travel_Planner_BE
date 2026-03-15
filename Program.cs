@@ -133,15 +133,15 @@ namespace PRM393_Travel_Planner_BE
                 db.Database.Migrate();
             }
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseMiddleware<ExceptionMiddleware>();
 
+            if (!app.Environment.IsProduction())
+            {
+                app.UseHttpsRedirection();
+            }
             //app.UseHttpsRedirection();
 
             app.UseCors();
@@ -153,10 +153,6 @@ namespace PRM393_Travel_Planner_BE
             app.MapControllers();
 
             app.MapGet("/", () => Results.Redirect("/swagger"));
-
-            var connectionString1 = builder.Services.BuildServiceProvider().GetRequiredService<Prm393TravelPlannerContext>()
-                       .Database.GetConnectionString();
-            Console.WriteLine($"--- ĐANG KẾT NỐI TỚI: {connectionString1} ---");
 
             app.Run();
         }
