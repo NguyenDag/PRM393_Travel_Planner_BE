@@ -21,9 +21,24 @@ namespace PRM393_Travel_Planner_BE
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // 1. Cấu hình Database (Hỗ trợ cả Railway URL và Local Connection String)
+            var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+            string connectionString;
+
+            if (!string.IsNullOrEmpty(databaseUrl))
+            {
+                // Logic cho môi trường Production (Railway)
+                connectionString = ConvertRailwayUrlToConnectionString(databaseUrl);
+            }
+            else
+            {
+                // Logic cho môi trường Local
+                connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+            }
+
+            // 2. Use PostgreSQL
             builder.Services.AddDbContext<Prm393TravelPlannerContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(connectionString));
 
             // ── JWT Authentication ────────────────────────────────────────────────────────
             var jwtSecret = builder.Configuration["Jwt:Secret"]!;
@@ -108,6 +123,12 @@ namespace PRM393_Travel_Planner_BE
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<Prm393TravelPlannerContext>();
+                db.Database.Migrate();
+            }
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -117,7 +138,7 @@ namespace PRM393_Travel_Planner_BE
 
             app.UseMiddleware<ExceptionMiddleware>();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseCors();
 
@@ -130,6 +151,20 @@ namespace PRM393_Travel_Planner_BE
             app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.Run();
+        }
+
+        private static string ConvertRailwayUrlToConnectionString(string databaseUrl)
+        {
+            var uri = new Uri(databaseUrl);
+            var userInfo = uri.UserInfo.Split(':');
+            if (userInfo.Length != 2) throw new Exception("DATABASE_URL không hợp lệ");
+
+            return $"Host={uri.Host};" +
+                   $"Port={uri.Port};" +
+                   $"Database={uri.AbsolutePath.TrimStart('/')};" +
+                   $"Username={userInfo[0]};" +
+                   $"Password={userInfo[1]};" +
+                   $"Ssl Mode=Require;Trust Server Certificate=true;";
         }
     }
 }
