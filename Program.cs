@@ -74,7 +74,20 @@ namespace PRM393_Travel_Planner_BE
 
             builder.Services.AddAuthorization();
 
-            // ── 4. Email Config ───────────────────────────────────────────────────────────
+            // ── 4. Cloudinary Config ──────────────────────────────────────────────────────
+            // Đọc từ appsettings.json (local) hoặc biến môi trường:
+            //   Cloudinary__CloudName, Cloudinary__ApiKey, Cloudinary__ApiSecret
+            var cloudinarySection = builder.Configuration.GetSection("Cloudinary");
+            if (string.IsNullOrWhiteSpace(cloudinarySection["CloudName"]) ||
+                string.IsNullOrWhiteSpace(cloudinarySection["ApiKey"]) ||
+                string.IsNullOrWhiteSpace(cloudinarySection["ApiSecret"]))
+            {
+                throw new InvalidOperationException(
+                    "Thiếu cấu hình Cloudinary. Set Cloudinary__CloudName, Cloudinary__ApiKey, Cloudinary__ApiSecret.");
+            }
+            builder.Services.Configure<CloudinarySettings>(cloudinarySection);
+
+            // ── 5. Email Config ───────────────────────────────────────────────────────────
             // Đọc từ appsettings.json (local) hoặc biến môi trường (server):
             //   Email__SmtpHost, Email__SmtpPort, Email__SmtpUser,
             //   Email__SmtpPass, Email__FromName, Email__FromAddress
@@ -109,6 +122,7 @@ namespace PRM393_Travel_Planner_BE
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
             // IMemoryCache — dùng để lưu OTP tạm thời
             builder.Services.AddMemoryCache();
