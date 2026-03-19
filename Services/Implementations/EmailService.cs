@@ -1,6 +1,7 @@
-using System.Net;
-using System.Net.Mail;
 using Microsoft.Extensions.Options;
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using PRM393_Travel_Planner_BE.Models;
 using TravelApp.API.Application.Interfaces;
 
@@ -12,12 +13,14 @@ public class EmailService(IOptions<EmailSettings> emailOptions) : IEmailService
 
     public async Task SendOtpAsync(string toEmail, string otp)
     {
-        using var message = new MailMessage();
-        message.From = new MailAddress(_email.FromAddress, _email.FromName);
-        message.To.Add(new MailAddress(toEmail));
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_email.FromName, _email.FromAddress));
+        message.To.Add(new MailboxAddress("", toEmail));
         message.Subject = "Mã xác thực OTP của bạn";
-        message.IsBodyHtml = true;
-        message.Body = $"""
+
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = $"""
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto;">
                 <h2 style="color: #4F7FFF;">Du Xuân Planner</h2>
                 <p>Xin chào,</p>
@@ -35,12 +38,14 @@ public class EmailService(IOptions<EmailSettings> emailOptions) : IEmailService
                     Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.
                 </p>
             </div>
-            """;
+            """
+        };
+        message.Body = bodyBuilder.ToMessageBody();
 
-        using var client = new SmtpClient(_email.SmtpHost, _email.SmtpPort);
-        client.Credentials = new NetworkCredential(_email.SmtpUser, _email.SmtpPass);
-        client.EnableSsl = true;
-
-        await client.SendMailAsync(message);
+        using var client = new SmtpClient();
+        await client.ConnectAsync(_email.SmtpHost, _email.SmtpPort, SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(_email.SmtpUser, _email.SmtpPass);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
     }
 }
