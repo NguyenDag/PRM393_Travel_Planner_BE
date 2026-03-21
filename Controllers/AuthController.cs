@@ -83,6 +83,17 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(result);
     }
 
+    // PUT /api/auth/me
+    [HttpPut("me")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        var result = await authService.UpdateProfileAsync(GetCurrentUserId(), request);
+        return Ok(result);
+    }
+
     // POST /api/auth/send-otp
     [HttpPost("send-otp")]
     [ProducesResponseType(typeof(OtpResponse), StatusCodes.Status200OK)]

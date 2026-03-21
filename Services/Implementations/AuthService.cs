@@ -105,11 +105,30 @@ public class AuthService(
         await tokenRepo.RevokeAllByUserAsync(userId);
     }
 
-    // ── Get Profile ───────────────────────────────────────────────────────────
     public async Task<UserDto> GetProfileAsync(Guid userId)
     {
         var user = await userRepo.GetByIdAsync(userId)
             ?? throw new KeyNotFoundException("Người dùng không tồn tại.");
+        return MapToDto(user);
+    }
+
+    // ── Update Profile ────────────────────────────────────────────────────────
+    public async Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileRequest req)
+    {
+        var user = await userRepo.GetByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Người dùng không tồn tại.");
+
+        user.FullName = req.FullName;
+        
+        // Chỉ update AvatarUrl nếu client gửi lên
+        if (req.AvatarUrl != null) 
+        {
+            user.AvatarUrl = req.AvatarUrl;
+        }
+        
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await userRepo.UpdateAsync(user);
         return MapToDto(user);
     }
 

@@ -38,6 +38,11 @@ public record ResetPasswordRequest(
     [Required, MinLength(6)] string NewPassword
 );
 
+public record UpdateProfileRequest(
+    [Required, StringLength(100)] string FullName,
+    string? AvatarUrl
+);
+
 // ── Response DTOs ─────────────────────────────────────────────────────────────
 
 public record AuthResponse(
