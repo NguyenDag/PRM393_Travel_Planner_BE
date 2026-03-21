@@ -7,9 +7,10 @@ using TravelApp.API.Application.Interfaces;
 
 namespace TravelApp.API.Application.Services;
 
-public class EmailService(IOptions<EmailSettings> emailOptions) : IEmailService
+public class EmailService(IOptions<EmailSettings> emailOptions, ILogger<EmailService> logger) : IEmailService
 {
     private readonly EmailSettings _email = emailOptions.Value;
+    private readonly ILogger<EmailService> _logger = logger;
 
     public async Task SendOtpAsync(string toEmail, string otp)
     {
@@ -43,9 +44,32 @@ public class EmailService(IOptions<EmailSettings> emailOptions) : IEmailService
         message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(_email.SmtpHost, _email.SmtpPort, SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(_email.SmtpUser, _email.SmtpPass);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        
+        // Cài đặt Timeout (15s) tránh lỗi hang vô tận gây request timeout (499)
+        client.Timeout = 15000;
+
+        try
+        {
+            _logger.LogInformation("Đang thử kết nối SMTP tới {Host}:{Port}...", _email.SmtpHost, _email.SmtpPort);
+            
+            await client.ConnectAsync(_email.SmtpHost, _email.SmtpPort, SecureSocketOptions.StartTls);
+            _logger.LogInformation("Đã kết nối SMTP thành công. Đang xác thực với tài khoản {User}...", _email.SmtpUser);
+            
+            await client.AuthenticateAsync(_email.SmtpUser, _email.SmtpPass);
+            _logger.LogInformation("Xác thực SMTP thành công. Đang gửi email...");
+            
+            await client.SendAsync(message);
+            _logger.LogInformation("Gửi email thành công tới {ToEmail}!", toEmail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "LỖI KHI GỬI EMAIL: {Message}", ex.Message);
+            // Throw lên để Middleware trả về 500 hoặc 400 cho Frontend thay vì hang
+            throw new InvalidOperationException($"Lỗi hệ thống khi gửi email: {ex.Message}", ex);
+        }
+        finally
+        {
+            await client.DisconnectAsync(true);
+        }
     }
 }
