@@ -10,7 +10,7 @@ class Settings(BaseSettings):
         extra="ignore",  # Ignore any extra fields in .env not declared here
     )
 
-    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
     INTERNAL_SECRET: str = "changeme"
     REDIS_URL: str = ""
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5000"]

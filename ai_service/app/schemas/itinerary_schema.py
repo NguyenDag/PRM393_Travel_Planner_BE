@@ -36,7 +36,13 @@ class DayPlan(BaseModel):
     activities: List[Activity]
 
 
+class PackingCategory(BaseModel):
+    category: str
+    items: List[str]
+
+
 class ItineraryResponse(BaseModel):
     trip_name: str
     destination: str
+    packing_list: List[PackingCategory] = Field(default_factory=list)
     days: List[DayPlan]

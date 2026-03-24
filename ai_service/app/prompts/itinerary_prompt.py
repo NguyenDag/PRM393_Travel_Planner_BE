@@ -21,6 +21,12 @@ Trả về JSON theo ĐÚNG cấu trúc sau, KHÔNG thêm bất kỳ text hoặc
 {{
   "trip_name": "Tên gợi cảm cho chuyến đi",
   "destination": "{destination}",
+  "packing_list": [
+    {{
+      "category": "Loại đồ dùng (vd: Tùy thân, Quần áo, Y tế)",
+      "items": ["Món đồ 1", "Món đồ 2"]
+    }}
+  ],
   "days": [
     {{
       "day_number": 1,
