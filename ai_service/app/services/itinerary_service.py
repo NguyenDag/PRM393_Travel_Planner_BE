@@ -2,7 +2,9 @@ import logging
 from app.schemas.itinerary_schema import ItineraryRequest, ItineraryResponse
 from app.prompts.itinerary_prompt import build_itinerary_prompt
 from app.services import openai_service
+from app.services import pexels_service
 from app.core.cache import get_cache, set_cache, make_cache_key
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +41,17 @@ async def generate(request: ItineraryRequest) -> ItineraryResponse:
     logger.info(f"Generating itinerary for {request.destination} ({request.days} days, {request.style})")
     try:
         data = await openai_service.generate_json(prompt)
-        # Verify and save to cache
+        # Verify
         result = ItineraryResponse(**data)
-        set_cache(cache_key, data, ttl_seconds=CACHE_TTL)
+        
+        # Fetch 1 image for the destination
+        logger.info(f"Fetching cover image for destination: {request.destination}")
+        image_url = await pexels_service.search_image(request.destination)
+        if image_url:
+            result.image_url = image_url
+        
+        # Save to cache as dict
+        set_cache(cache_key, result.model_dump(), ttl_seconds=CACHE_TTL)
         return result
     except Exception as e:
         logger.error(f"Failed to generate AI itinerary: {e}. Returning fallback data.")

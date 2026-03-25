@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     )
 
     OPENAI_API_KEY: str = ""
+    PEXELS_API_KEY: str = ""
     INTERNAL_SECRET: str = "changeme"
     REDIS_URL: str = ""
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5000"]

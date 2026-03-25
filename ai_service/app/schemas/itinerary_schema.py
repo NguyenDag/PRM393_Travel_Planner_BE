@@ -44,5 +44,6 @@ class PackingCategory(BaseModel):
 class ItineraryResponse(BaseModel):
     trip_name: str
     destination: str
+    image_url: Optional[str] = None
     packing_list: List[PackingCategory] = Field(default_factory=list)
     days: List[DayPlan]
