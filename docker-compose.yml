@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: .
+    container_name: travel_planner_api
+    restart: always
+    depends_on:
+      - db
+    env_file:
+      - .env
+    ports:
+      - "80:8080" # Map port 80 của VPS vào port 8080 của App (chuẩn .NET 8)
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+
+  ai_service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: travel_planner_ai
+    restart: always
+    env_file:
+      - ./ai_service/.env
+    ports:
+      - "8000:8000"   # Điều chỉnh nếu port bên trong khác 8000
+
+volumes:
+  pgdata:
